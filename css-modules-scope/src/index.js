@@ -5,18 +5,23 @@ import selectorParser from 'postcss-selector-parser'
  * @param {string} name
  * @returns {string}
  */
-function generateScopedName(name) {
+const generateScopedName = name => {
   const randomStr = Math.random().toString(16).slice(2)
   return `_${randomStr}__${name}`
 }
 
-const plugin = (options = {}) => {
+const plugin = () => {
   return {
     postcssPlugin: 'my-postcss-modules-scope',
     Once(root, helpers) {
       const exports = {}
 
-      function exportScopedName(name) {
+      /**
+       *
+       * @param {string} name
+       * @returns {string}
+       */
+      const exportScopedName = name => {
         const scopedName = generateScopedName(name)
 
         exports[name] = exports[name] || []
@@ -28,7 +33,7 @@ const plugin = (options = {}) => {
         return scopedName
       }
 
-      function localizeNode(node) {
+      const localizeNode = node => {
         switch (node.type) {
           case 'selector':
             node.nodes = node.map(localizeNode)
@@ -45,7 +50,7 @@ const plugin = (options = {}) => {
         }
       }
 
-      function traverseNode(node) {
+      const traverseNode = node => {
         switch (node.type) {
           case 'root':
           case 'selector': {
@@ -58,7 +63,7 @@ const plugin = (options = {}) => {
             break
           case 'pseudo':
             if (node.value === ':local') {
-              const selector = localizeNode(node.first, node.spaces)
+              const selector = localizeNode(node.first)
 
               node.replaceWith(selector)
 
@@ -72,12 +77,18 @@ const plugin = (options = {}) => {
       root.walkRules(rule => {
         const parsedSelector = selectorParser().astSync(rule)
 
-        rule.selector = traverseNode(parsedSelector.clone()).toString()
+        const oldSelectorNode = parsedSelector.clone()
+        const newSelectorNode = traverseNode(oldSelectorNode)
+
+        rule.selector = newSelectorNode.toString()
 
         rule.walkDecls(/composes|compose-with/i, decl => {
           const localNames = parsedSelector.nodes.map(node => {
             return node.nodes[0].first.first.value
           })
+
+          // dong
+          // dongdong
           const classes = decl.value.split(/\s+/)
 
           classes.forEach(className => {
@@ -98,6 +109,7 @@ const plugin = (options = {}) => {
             }
           })
 
+          // Delete the original "composes" or "compose-with" declaration
           decl.remove()
         })
       })
