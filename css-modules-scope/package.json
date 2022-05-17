@@ -1,0 +1,13 @@
+{
+  "name": "css-modules-scope",
+  "version": "1.0.0",
+  "author": "zhixiangyao",
+  "type": "module",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "dependencies": {
+    "postcss": "^8.4.4",
+    "postcss-selector-parser": "^6.0.10"
+  }
+}
